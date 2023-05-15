@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "MultiplayerRunnerCharacter.generated.h"
 
 
@@ -39,7 +40,7 @@ class AMultiplayerRunnerCharacter : public ACharacter
 
 public:
 	AMultiplayerRunnerCharacter();
-	
+	IOnlineSessionPtr OnlineSessionInterface;
 
 protected:
 
@@ -48,9 +49,17 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
 
-protected:
+	UFUNCTION(BlueprintCallable)
+	void CreateGameSession();
+
+	UFUNCTION(BlueprintCallable)
+	void JoinGameSession();
+
+	void OnCreateSessionComplete(FName SessionName, bool bWasSuccess);
+	void OnFindSessionComplete(bool bWasSuccessful);
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
@@ -62,14 +71,12 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-	
-	UFUNCTION(BlueprintCallable)
-    void OpenLobby();
 
-    UFUNCTION(BlueprintCallable)
-    void CallOpenLevel(const FString& Address);
+private:
+	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
+	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
+	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
 
-    UFUNCTION(BlueprintCallable)
-    void CallClientTravel(const FString& Address);
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 };
 
